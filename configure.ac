@@ -807,7 +807,7 @@ fi
 AC_MSG_CHECKING([whether to turn sanitizers on])
 if test "x$with_sanitizer" != "x"; then
     AC_MSG_RESULT([yes ($with_sanitizer)])
-    SANITIZER_FLAGS="-O1 -fno-omit-frame-pointer -fsanitize=$with_sanitizer -frtti -static-libasan"
+    SANITIZER_FLAGS="-O1 -fno-omit-frame-pointer -fsanitize=$with_sanitizer -frtti"
     CXXFLAGS="$CXXFLAGS $SANITIZER_FLAGS"
     CFLAGS="$CFLAGS $SANITIZER_FLAGS"
 else
@@ -817,7 +817,7 @@ fi
 AC_MSG_CHECKING([whether to build fuzzers])
 if test "$enable_fuzzers" = "yes"; then
     AC_MSG_RESULT([yes])
-    LIBFUZZER_FLAGS="-fsanitize=fuzzer-no-link"
+    LIBFUZZER_FLAGS="-fsanitize=fuzzer-no-link,address"
     CXXFLAGS="$CXXFLAGS $LIBFUZZER_FLAGS"
     CFLAGS="$CFLAGS $LIBFUZZER_FLAGS"
     LIBFUZZER=1
@@ -842,7 +842,8 @@ for flag in -std=c++17 -std=gnu++14 -std=gnu++1y -std=c++14 -std=c++1y -std=gnu+
         void f(std::vector<int> & v, std::function<bool(int, int)> fn) {
             std::sort(v.begin(), v.end(), fn);
         }
-        ]])],[CXXFLAGS_CXX11=$flag])
+        ]])],[CXXFLAGS_CXX11=$flag], [$(cp conftest.cpp /tmp/conftest.bak.cpp)])
+    AC_MSG_RESULT([$CXXFLAGS])
     AC_LANG_POP([C++])
     CXXFLAGS=$save_CXXFLAGS
     if test -n "$CXXFLAGS_CXX11"; then
