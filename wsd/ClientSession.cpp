@@ -318,6 +318,7 @@ void ClientSession::handleClipboardRequest(DocumentBroker::ClipboardRequest     
         LOG_TRC("Session [" << getId() << "] sending setclipboard");
         if (data.get())
         {
+            preProcessSetClipboardPayload(*data);
             docBroker->forwardToChild(getId(), "setclipboard\n" + *data);
 
             // FIXME: work harder for error detection ?
@@ -2285,6 +2286,23 @@ void ClientSession::traceTileBySend(const TileDesc& tile, bool deduplicated)
     // Record that the tile is sent
     if (!deduplicated)
         addTileOnFly(tile);
+}
+
+void ClientSession::preProcessSetClipboardPayload(std::string& payload)
+{
+    std::size_t start = payload.find("<meta name=\"origin\" content=\"");
+    if (start != std::string::npos)
+    {
+        std::size_t end = payload.find("\"/>\n", start);
+        if (end == std::string::npos)
+        {
+            LOG_DBG("Found unbalanced <meta name=\"origin\".../> tag in setclipboard payload.");
+            return;
+        }
+
+        std::size_t len = end - start + 4;
+        payload.erase(start, len);
+    }
 }
 
 /* vim:set shiftwidth=4 softtabstop=4 expandtab: */
